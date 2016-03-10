@@ -66,11 +66,24 @@ namespace SLogCrawler
                     fileName, resultDestination);
                 ProcessFile();
                 PrintData();
+                ClearFields();
             }
             else
             {
                 tbResultBox.Text = defaultPathErrorString;
             }
+        }
+
+        private void ClearFields()
+        {
+            filePath = string.Empty;
+            fileName = string.Empty;
+            resultFileName = string.Empty;
+            resultDestination = string.Empty;
+            extractedFileData = new Dictionary<string, List<string>>();
+            tbFilePath.Clear();
+            tbResultDestination.Clear();
+            tbResultBox.Text += Environment.NewLine + " - Success!";
         }
 
         private void PrintData()
@@ -84,8 +97,7 @@ namespace SLogCrawler
             using (StreamWriter sr = new StreamWriter(
                 newFile))
             {
-                int sumChecker = 0;
-                tbResultBox.Text += String.Format("Creating file -> {0}", newFile);
+                tbResultBox.Text += String.Format(" - Creating file -> {0}", newFile);
                 sr.WriteLine("=>{0} unique IP adresses.{1}=>IP/Count List:",
                     ipKeyList.Count,
                     Environment.NewLine);
@@ -104,10 +116,8 @@ namespace SLogCrawler
                     for (int dataIdx = 0; dataIdx < extractedFileData[ipBuffer].Count; dataIdx++)
                     {
                         sr.WriteLine("\t{0}", extractedFileData[ipBuffer][dataIdx]);
-                        sumChecker++;
                     }
                 }
-                tbResultBox.Text += Environment.NewLine + sumChecker;
             }
         }
 
@@ -171,6 +181,7 @@ namespace SLogCrawler
 
         private bool checkFilePaths()
         {
+            tbResultBox.Clear();
             if (!String.IsNullOrWhiteSpace(filePath) &&
                 !String.IsNullOrWhiteSpace(resultDestination))
             {
@@ -189,7 +200,9 @@ namespace SLogCrawler
             string destinationPath)
         {
             int counter = 0;
-            string buffer = ""; 
+            string buffer = "";
+            sourceFileName = Regex.Replace(
+                sourceFileName, @"(.*)\.([\w\d]+)", "$1($2).txt");
             while (true)
             {
                 buffer = string.Format("({0}-done){1}",
