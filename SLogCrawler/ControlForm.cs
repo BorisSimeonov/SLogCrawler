@@ -27,7 +27,7 @@ namespace SLogCrawler
         private void btnLoadFile_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "TXT|*.txt;*.doc;*.docx;*.rtf";
+            ofd.Filter = "Text Logs|*.txt;*.doc;*.docx;*.rtf;*.xml";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 filePath = ofd.FileName;
@@ -94,30 +94,40 @@ namespace SLogCrawler
             .CompareTo(extractedFileData[fKey].Count));
             //
             string newFile = resultDestination + @"\" + resultFileName;
-            using (StreamWriter sr = new StreamWriter(
-                newFile))
+            try
             {
-                tbResultBox.Text += String.Format(" - Creating file -> {0}", newFile);
-                sr.WriteLine("=>{0} unique IP adresses.{1}=>IP/Count List:",
-                    ipKeyList.Count,
-                    Environment.NewLine);
-                foreach (string ip in ipKeyList)
+                using (StreamWriter sr = new StreamWriter(
+                    newFile))
                 {
-                    sr.WriteLine("\t{0} / {1}", ip, extractedFileData[ip].Count);
-                }
-                sr.WriteLine();
-                sr.WriteLine("=>Full Data View:");
-
-                string ipBuffer = "";
-                for (int ipIdx = 0; ipIdx < ipKeyList.Count; ipIdx++)
-                {
-                    ipBuffer = ipKeyList[ipIdx];
-                    sr.WriteLine(ipBuffer);
-                    for (int dataIdx = 0; dataIdx < extractedFileData[ipBuffer].Count; dataIdx++)
+                    tbResultBox.Text += String.Format(" - Creating file -> {0}", newFile);
+                    sr.WriteLine("=>{0} unique IP adresses.{1}=>IP/Count List:",
+                        ipKeyList.Count,
+                        Environment.NewLine);
+                    foreach (string ip in ipKeyList)
                     {
-                        sr.WriteLine("\t{0}", extractedFileData[ipBuffer][dataIdx]);
+                        sr.WriteLine("\t{0} / {1}", ip, extractedFileData[ip].Count);
+                    }
+                    sr.WriteLine();
+                    sr.WriteLine("=>Full Data View:");
+
+                    string ipBuffer = "";
+                    for (int ipIdx = 0; ipIdx < ipKeyList.Count; ipIdx++)
+                    {
+                        ipBuffer = ipKeyList[ipIdx];
+                        sr.WriteLine(ipBuffer);
+                        for (int dataIdx = 0; dataIdx < extractedFileData[ipBuffer].Count; dataIdx++)
+                        {
+                            sr.WriteLine("\t{0}", extractedFileData[ipBuffer][dataIdx]);
+                        }
                     }
                 }
+            }
+            catch(ArgumentException ex)
+            {
+                tbResultBox.Text = string.Format(
+                   " - Error while writing the new file has occured.{0}{1}",
+                   Environment.NewLine, ex.Message);
+                ClearFields();
             }
         }
 
@@ -125,17 +135,27 @@ namespace SLogCrawler
         {
             string lineBuffer = "";
             int counter = 0;
-            using (StreamReader sr = new StreamReader(filePath))
+            try
             {
-                tbResultBox.Text += " - Analizing file data ..." +
-                    Environment.NewLine;
-                while ((lineBuffer = sr.ReadLine()) != null)
+                using (StreamReader sr = new StreamReader(filePath))
                 {
-                    counter++;
-                    ExtractData(lineBuffer);
+                    tbResultBox.Text += " - Analizing file data ..." +
+                        Environment.NewLine;
+                    while ((lineBuffer = sr.ReadLine()) != null)
+                    {
+                        counter++;
+                        ExtractData(lineBuffer);
+                    }
+                    tbResultBox.Text += string.Format(" - {0} lines processed.{1}",
+                        counter, Environment.NewLine);
                 }
-                tbResultBox.Text += string.Format(" - {0} lines processed.{1}",
-                    counter, Environment.NewLine);
+            }
+            catch (ArgumentNullException ex)
+            {
+                tbResultBox.Text = string.Format(
+                    " - Error while reading the file has occured.{0}{1}",
+                    Environment.NewLine, ex.Message);
+                ClearFields();
             }
         }
 
